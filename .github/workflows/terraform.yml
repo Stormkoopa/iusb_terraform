@@ -74,7 +74,7 @@ jobs:
       run: terraform apply -auto-approve -input=false
 
     - name: Prowler AWS Check
-      run: prowler aws -M json-asff -o /tmp/ -F prowler_report
+      run: prowler aws -M json-asff -o /tmp -F prowler_report
     
     - name: Import Findings in Security Hub
-      run:  aws batch-import-findings --findings /tmp/prowler_report.json
+      run:  aws batch-import-findings --findings /tmp/prowler_report.asff.json
