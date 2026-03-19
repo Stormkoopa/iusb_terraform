@@ -78,5 +78,6 @@ jobs:
     
     - name: Import Findings in Security Hub
       run: |
-        aws securityhub enable-import-findings-for-product --region eu-west-1 --product-arn arn:aws:securityhub:eu-central-1::product/prowler/prowler
+        aws securityhub enable-security-hub --region eu-central-1
+        aws securityhub enable-import-findings-for-product --region eu-central-1 --product-arn arn:aws:securityhub:eu-central-1::product/prowler/prowler
        # aws securityhub batch-import-findings --findings /tmp/prowler_report.asff.json --cli-input-json
