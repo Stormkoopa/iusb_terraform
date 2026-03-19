@@ -77,4 +77,4 @@ jobs:
       run: prowler aws -M json-asff -o /tmp -F prowler_report -z
     
     - name: Import Findings in Security Hub
-      run:  aws securityhub batch-import-findings --findings /tmp/prowler_report.asff.json
+      run:  aws securityhub batch-import-findings --findings /tmp/prowler_report.asff.json --cli-input-json
