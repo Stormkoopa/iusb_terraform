@@ -23,6 +23,13 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
+    
+    - name: Setup AWS CLI
+      uses: unfor19/install-aws-cli-action@v1
+      with:
+        version: 2                         # default
+        verbose: false                     # default
+        arch: amd64                        # allowed values: amd64, x86, x64, arm, arm64
 
     - name: Setup Prowler
       run: |
@@ -65,3 +72,9 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
+
+    - name: Prowler AWS Check
+      run: prowler aws -M json-asff -o /tmp/ -F prowler_report
+    
+    - name: Import Findings in Security Hub
+      run:  aws batch-import-findings --findings /tmp/prowler_report.json
