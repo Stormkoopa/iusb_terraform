@@ -67,5 +67,5 @@ jobs:
       run: terraform apply -auto-approve -input=false
 
     - name: Prowler AWS Check
-      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager --security-hub -z 
+      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager --security-hub -f eu-central-1 -z --skip-sh-update
   
