@@ -42,7 +42,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v6.1.0
       with:
         role-to-assume: arn:aws:iam::162105037857:role/TerraformExecutor
-        aws-region: eu-central-1
+        aws-region: eu-west-1
     # Install the latest version of Terraform CLI
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -67,5 +67,4 @@ jobs:
       run: terraform apply -auto-approve -input=false
 
     - name: Prowler AWS Check
-      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager --security-hub -f eu-central-1 -z --skip-sh-update
-  
+      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager --security-hub -f eu-west-1 -z
