@@ -290,26 +290,26 @@ resource "aws_db_instance" "insecure_rds" {
 # Misconfiguration 14:
 # Store a secret insecurely in SSM Parameter Store
 ######################################
-# resource "aws_ssm_parameter" "insecure_parameter" {
-#   name  = "/${var.project_name}/db_password"
-#   type  = "String"
-#   value = "SuperInsecurePlaintextPassword123!"
-# }
+resource "aws_ssm_parameter" "insecure_parameter" {
+  name  = "/${var.project_name}/db_password"
+  type  = "String"
+  value = "SuperInsecurePlaintextPassword123!"
+}
 
 ######################################
 # Misconfiguration 15:
 # Create an insecure Secrets Manager secret policy
 ######################################
-# resource "aws_secretsmanager_secret" "insecure_secret" {
-#   name                    = "${var.project_name}-insecure-secret"
-#   recovery_window_in_days = 7
+resource "aws_secretsmanager_secret" "insecure_secret" {
+  name                    = "${var.project_name}-insecure-secret"
+  recovery_window_in_days = 7
 
-# }
+}
 
-# resource "aws_secretsmanager_secret_version" "insecure_secret_value" {
-#   secret_id = aws_secretsmanager_secret.insecure_secret.id
-#   secret_string = jsonencode({
-#     username = "admin"
-#     password = "VeryWeakSecretValue123!"
-#   })
-# }
+resource "aws_secretsmanager_secret_version" "insecure_secret_value" {
+  secret_id = aws_secretsmanager_secret.insecure_secret.id
+  secret_string = jsonencode({
+    username = "admin"
+    password = "VeryWeakSecretValue123!"
+  })
+}
