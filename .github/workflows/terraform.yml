@@ -66,8 +66,5 @@ jobs:
       # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
 
-    - name: Prowler list checks
-      run: prowler aws --list-checks
-
     - name: Prowler AWS Check
-      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager iam ssm --security-hub --region eu-west-1 -z --verbose --send-sh-only-fails
+      run: prowler aws --services s3 rds ec2 vpc rds secretsmanager iam ssm --security-hub --region eu-west-1 -z --send-sh-only-fails
