@@ -209,7 +209,7 @@ resource "aws_ebs_encryption_by_default" "disabled" {
 
 ######################################
 # Misconfiguration 11:
-# Allow public snapshots on an EBS snapshot
+# Unencrypted EBS volume and snapshot
 ######################################
 resource "aws_ebs_volume" "insecure_volume" {
   availability_zone = data.aws_subnet.default_first.availability_zone
@@ -298,7 +298,7 @@ resource "aws_ssm_parameter" "insecure_parameter" {
 
 ######################################
 # Misconfiguration 15:
-# Create an insecure Secrets Manager secret policy
+# Weak secret handling in AWS Secrets Manager
 ######################################
 resource "aws_secretsmanager_secret" "insecure_secret" {
   name                    = "${var.project_name}-insecure-secret"
