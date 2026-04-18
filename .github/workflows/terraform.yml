@@ -64,7 +64,7 @@ jobs:
 
     - name: Run Prowler IaC Scan (Terraform)
       run: |
-       prowler iac --directory . \
+       prowler iac --scan-path . \
        --output json \
        --output-file prowler-iac-results.json
       
