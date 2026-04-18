@@ -73,7 +73,7 @@ jobs:
     - name: Run Prowler IaC Scan (Terraform)
       run: |
        prowler iac -z --scan-path . \
-       --output-filename prowler-iac-results.json
+       --output-filename prowler-iac-results
       
     - name: Create GitHub Issues from Prowler IaC Findings
       uses: actions/github-script@v7
@@ -81,35 +81,38 @@ jobs:
         script: |
           const fs = require('fs');
 
-          const results = JSON.parse(fs.readFileSync('prowler-iac-results.json', 'utf8'));
+          const results = JSON.parse(fs.readFileSync('/home/runner/work/iusb_terraform/iusb_terraform/output/prowler-iac-results.json.ocsf.json', 'utf8'));
 
           for (const finding of results) {
-            if (finding.Status === "FAIL") {
-              const title = `[Prowler IaC] ${finding.CheckID}: ${finding.CheckTitle}`;
+          // Only process failed findings
+                  if (finding.status !== "FAIL") continue;
 
-              const body = `
-              **Severity:** ${finding.Severity}
-              **Resource:** ${finding.ResourceId}
-              **File:** ${finding.File || "N/A"}
+                  const title = `[Prowler IaC] ${finding.finding_info?.title || "Security Finding"}`;
 
-              **Description:**
-              ${finding.Description}
+                  const resource = finding.resources?.[0]?.name || "Unknown resource";
 
-              **Remediation:**
-              ${finding.Remediation || "See Prowler documentation"}
-              `;
+                  const body = `
+                  **Severity:** ${finding.severity || "Unknown"}
+                  **Resource:** ${resource}
 
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: title,
-                body: body
+                  **Description:**
+                  ${finding.finding_info?.desc || "No description available"}
+
+                  **Compliance:**
+                  ${JSON.stringify(finding.compliance || {}, null, 2)}
+                  `;
+
+                  await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: title,
+                    body: body
               });
             }
           }
 
     - name: Terraform Apply
-      # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
 
     - name: Prowler AWS Check
