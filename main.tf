@@ -1,7 +1,7 @@
 ######################################
-# Random suffix alternative
+# Misconfiguration 1:
+# Public S3 bucket
 ######################################
-
 resource "aws_s3_bucket" "insecure_bucket" {
   bucket = "${var.project_name}-insecure-demo-10042026"
 }
@@ -13,10 +13,6 @@ resource "aws_s3_bucket_ownership_controls" "insecure_bucket_ownership_controls"
     object_ownership = "BucketOwnerPreferred"
   }
 }
-######################################
-# Misconfiguration 1:
-# Public S3 bucket
-######################################
 
 resource "aws_s3_bucket_public_access_block" "insecure_bucket_public_access" {
   bucket = aws_s3_bucket.insecure_bucket.id
