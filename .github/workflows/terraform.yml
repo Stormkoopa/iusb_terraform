@@ -6,7 +6,6 @@ on:
 
 permissions:
   id-token: write
-  issues: write
   contents: read
 
 jobs:
@@ -23,14 +22,16 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
-    
+
+    # Install the AWS CLI for direct interaction with AWS
     - name: Setup AWS CLI
       uses: unfor19/install-aws-cli-action@v1
       with:
-        version: 2                         # default
-        verbose: false                     # default
-        arch: amd64                        # allowed values: amd64, x86, x64, arm, arm64
+        version: 2                    
+        verbose: false                     
+        arch: amd64    
 
+    # Installs Prowler and its dependencies
     - name: Setup Prowler
       run: |
         sudo apt update
@@ -39,19 +40,13 @@ jobs:
         pipx install prowler
         prowler -v
 
-    - name: Setup Trivy
-      run: |
-        sudo apt-get install wget gnupg
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update
-        sudo apt-get install trivy
-
+    # Configure Authentication to AWS
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v6.1.0
       with:
         role-to-assume: arn:aws:iam::162105037857:role/TerraformExecutor
         aws-region: eu-west-1
+
     # Install the latest version of Terraform CLI
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -70,50 +65,11 @@ jobs:
     - name: Terraform Plan
       run: terraform plan -input=false
 
-    - name: Run Prowler IaC Scan (Terraform)
-      run: |
-       prowler iac -z --scan-path . \
-       --output-filename prowler-iac-results
-      
-    - name: Create GitHub Issues from Prowler IaC Findings
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-
-          const results = JSON.parse(fs.readFileSync('/home/runner/work/iusb_terraform/iusb_terraform/output/prowler-iac-results.json.ocsf.json', 'utf8'));
-
-          for (const finding of results) {
-          // Only process failed findings
-                  if (finding.status !== "FAIL") continue;
-
-                  const title = `[Prowler IaC] ${finding.finding_info?.title || "Security Finding"}`;
-
-                  const resource = finding.resources?.[0]?.name || "Unknown resource";
-
-                  const body = `
-                  **Severity:** ${finding.severity || "Unknown"}
-                  **Resource:** ${resource}
-
-                  **Description:**
-                  ${finding.finding_info?.desc || "No description available"}
-
-                  **Compliance:**
-                  ${JSON.stringify(finding.compliance || {}, null, 2)}
-                  `;
-
-                  await github.rest.issues.create({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    title: title,
-                    body: body
-              });
-            }
-          
-
+    # Applies the Terraform plan
     - name: Terraform Apply
       if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
 
+    # Executes the specified Prowler AWS Checks and sends the failed checks as a finding to AWS Security Hub CSPM
     - name: Prowler AWS Check
       run: prowler aws --services s3 rds ec2 vpc rds secretsmanager iam ssm --security-hub --region eu-west-1 -z --send-sh-only-fails
